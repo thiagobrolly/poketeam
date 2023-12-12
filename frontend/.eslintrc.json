@@ -1,0 +1,6 @@
+{
+  "extends": "@thiagobrolly/eslint-config/react",
+  "rules": {
+    "no-useless-catch": "off"
+  }
+}
