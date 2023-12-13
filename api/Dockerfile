@@ -1,25 +1,22 @@
 FROM node
 
-WORKDIR /opt
+WORKDIR /usr/app
 
-COPY package.json ./
+COPY package*.json ./
 
-# generated prisma files
 COPY prisma ./prisma/
-
-COPY .env ./
-
-COPY tsconfig.json ./
 
 RUN npm install
 
 COPY . .
 
-# Gere o cliente Prisma
 RUN npx prisma generate
 
-# Compile o código TypeScript, se necessário
-RUN npm run build
+COPY entrypoint.sh .
+
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
 
 EXPOSE 3333
 

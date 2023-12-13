@@ -1,46 +1,50 @@
-version: '3'
+version: '3.9'
 services:
   db:
-    image: bitnami/postgresql
+    image: postgres
+    container_name: poketeam_db
     restart: always
     ports:
-      - "5432:5432"  # Porta do PostgreSQL
+      - "5432:5432"
     environment:
-      - POSTGRESQL_USERNAME=docker
-      - POSTGRESQL_PASSWORD=docker
-      - POSTGRESQL_DATABASE=poketeam
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=poketeam
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - pg_data:/data/postgres
     network_mode: host
-  
+
   api:
     build:
-      context: ./api  # Caminho para a pasta do Backend
-      dockerfile: Dockerfile  # Arquivo Dockerfile do Backend
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: poketeam_api
     restart: always
     ports:
-      - "3333:3333"  # Porta do Backend
+      - "3333:3333"
     depends_on:
-      - db  # Dependência do banco de dados
+      - db
     volumes:
-      - .:/opt/app
-    # environment:
-    #   - NODE_ENV=dev
-    #   - JWT_SECRET=asdfasdfadsf
-    #   - DATABASE_URL="postgresql://docker:docker@db:5432/poketeam?schema=public"
+      - ./api:/app 
+    environment:
+      NODE_ENV: dev
+      JWT_SECRET: asdfasdfadsf
+      DATABASE_URL: "postgresql://docker:docker@localhost:5432/poketeam?schema=public"
     network_mode: host
 
   frontend:
     build:
-      context: ./frontend  # Caminho para a pasta do Frontend
-      dockerfile: Dockerfile  # Arquivo Dockerfile do Frontend
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: poketeam_web
     ports:
-      - "5173:5173"  # Porta do Frontend
+      - "5173:5173"
     environment:
       - VITE_API_URL=http://localhost:3333
       - VITE_API_POKEMON_URL=https://pokeapi.co/api/v2/
+    network_mode: host
 
 volumes:
-  db-data:  # Volume para persistir os dados do PostgreSQL
+  pg_data:
     driver: local
 
