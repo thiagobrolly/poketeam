@@ -5,12 +5,39 @@ import { api } from './api';
 import { storageAuthTokenGet } from '../storage/storageAuthToken';
 import { pokeAPI } from './pokeAPI';
 import { AppError } from '../utils/AppError';
+import { EvolutionDTO } from '../dtos/EvolutionsDTO';
+
+export interface PokemonSpeciesDTO {
+  id: number;
+  evolution_chain: {
+    url: string;
+  };
+}
 
 export async function getPokemonDetails(pokemonName: string) {
   const { data } = await pokeAPI.get<IPokemonDetails>(
     `/pokemon/${pokemonName}`,
   );
 
+  return data;
+}
+
+export const fetchPokemonSpecies = async (pokemonId: number) => {
+  const { data } = await pokeAPI.get<PokemonSpeciesDTO>(
+    `/pokemon-species/${pokemonId}`,
+  );
+  console.log(data);
+  const evolutionChainUrl = data.evolution_chain.url;
+  const { data: evolutionData } =
+    await pokeAPI.get<EvolutionDTO>(evolutionChainUrl);
+
+  console.log('XXXXX =>', evolutionData);
+
+  return evolutionData.chain;
+};
+
+export async function getPokemonEvolution(pokemonId: number) {
+  const { data } = await pokeAPI.get(`evolution-chain/${pokemonId}/`);
   return data;
 }
 
@@ -25,6 +52,12 @@ export const removePokemonFromTeam = async (pokemonName: string) => {
 export const usePokemonDetails = (pokemonName: string) => {
   return useQuery(['pokemon', pokemonName], () =>
     getPokemonDetails(pokemonName),
+  );
+};
+
+export const usePokemonSpecies = (pokemonId: number) => {
+  return useQuery(['pokemonEvolutions', pokemonId], () =>
+    fetchPokemonSpecies(pokemonId),
   );
 };
 
@@ -71,13 +104,4 @@ export const useTeamPokemons = () => {
       }
     }
   });
-
-  // const {
-  //   data: pokemons = [],
-  //   isLoading,
-  //   isError,
-  //   error,
-  // } = useQuery('pokemons', fetchTeamPokemons);
-
-  // return { pokemons, isLoading, isError, error };
 };

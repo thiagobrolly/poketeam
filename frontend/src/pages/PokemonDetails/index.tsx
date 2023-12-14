@@ -2,15 +2,16 @@ import { useParams } from 'react-router-dom';
 import { GoBack } from '../../components/GoBack';
 import { Loading } from '../../components/Loading';
 import { Level } from '../../components/Level';
-
-import * as S from './styles';
 import {
   useAddPokemonToTeam,
   usePokemonDetails,
+  usePokemonSpecies,
   useRemovePokemonFromTeam,
   useTeamPokemons,
 } from '../../services/pokemonTeams';
 import { PokemonDTO } from '../../dtos/PokemonDTO';
+import { EvolutionChainDTO } from '../../dtos/EvolutionsDTO';
+import * as S from './styles';
 
 export function PokemonDetails() {
   const { name } = useParams();
@@ -19,8 +20,8 @@ export function PokemonDetails() {
   const { mutate: addPokemon } = useAddPokemonToTeam();
   const { mutate: removePokemon } = useRemovePokemonFromTeam();
   const { data: teamPokemons } = useTeamPokemons();
-
-  console.log({ teamPokemons });
+  const { data: evolutionData, isLoading: evolutionLoading } =
+    usePokemonSpecies(pokemon?.id || 0);
 
   const isPokemonInTeam = (pokemonName: string): boolean => {
     return !!teamPokemons?.some(
@@ -52,6 +53,34 @@ export function PokemonDetails() {
         addPokemon(pokeData);
       }
     }
+  };
+
+  const renderEvolutions = (evolutionChain: EvolutionChainDTO | undefined) => {
+    if (!evolutionChain) {
+      return <Loading />;
+    }
+
+    const renderEvolution = (evolution: EvolutionChainDTO) => {
+      const { name, url } = evolution.species;
+      const evolutionId = url.split('/').filter(Boolean).pop();
+
+      return (
+        <S.EvolutionsContent key={name}>
+          <S.Evolutions className="evo">
+            <p>{name}</p>
+            <img
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evolutionId}.png`}
+              alt={name}
+              style={{ width: '60px' }}
+            />
+          </S.Evolutions>
+          {evolution.evolves_to.length > 0 &&
+            evolution.evolves_to.map((evo) => renderEvolution(evo))}
+        </S.EvolutionsContent>
+      );
+    };
+
+    return <>{renderEvolution(evolutionChain)}</>;
   };
 
   const renderSelectPokemon = () => {
@@ -90,6 +119,13 @@ export function PokemonDetails() {
           <S.LevelContainer>
             <span>Altura</span> - <span>{pokemon?.height}</span>
           </S.LevelContainer>
+
+          <S.EvolutionsContainer>
+            <h2>Evoluções</h2>
+
+            {renderEvolutions(evolutionData)}
+          </S.EvolutionsContainer>
+
           <button onClick={handleAddOrRemove}>
             {isPokemonInTeam(pokemon?.name ?? '')
               ? 'Remover da Equipe'
@@ -103,7 +139,9 @@ export function PokemonDetails() {
   return (
     <S.Container>
       <GoBack />
-      <S.Content>{isLoading ? <Loading /> : renderSelectPokemon()}</S.Content>
+      <S.Content>
+        {isLoading || evolutionLoading ? <Loading /> : renderSelectPokemon()}
+      </S.Content>
     </S.Container>
   );
 }

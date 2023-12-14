@@ -49,3 +49,20 @@ export const ContentLeft = styled.div`
   justify-content: flex-start;
   gap: 8px;
 `;
+
+export const EvolutionsContainer = styled.div`
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+`;
+
+export const EvolutionsContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const Evolutions = styled.div`
+  display: flex;
+  gap: 5px;
+`;

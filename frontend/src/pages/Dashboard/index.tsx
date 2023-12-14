@@ -78,7 +78,7 @@ export function Dashboard() {
         {isError && <p>Failed to fetch Pokémon. Please try again.</p>}
 
         {isLoading ? (
-          <h1>Carregando...</h1>
+          <Loading />
         ) : (
           <div
             style={{
